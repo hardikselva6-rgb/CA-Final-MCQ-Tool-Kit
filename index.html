@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CA Final MCQ Assessment Tool</title>
+<title>CA Final MCQ Assessment Tool V2</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -105,6 +105,24 @@ body::before {
 .badge-rose { background: rgba(224,92,111,0.15); color: var(--rose2); }
 .badge-sky { background: rgba(59,130,246,0.15); color: var(--sky2); }
 .badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+/* ── TAB SYSTEM ── */
+.tabs-container {
+  display: flex; gap: 12px; border-bottom: 1px solid var(--border);
+  padding: 0 24px; margin-bottom: 24px;
+}
+.tab-btn {
+  padding: 14px 20px; background: transparent; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  color: var(--text3); cursor: pointer; transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+  color: var(--gold); border-bottom-color: var(--gold);
+}
+.tab-btn:hover { color: var(--gold2); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
 /* ── TOPBAR ── */
 .topbar {
@@ -243,8 +261,20 @@ textarea.qa-input:focus { outline: none; border-color: var(--gold); }
   border-radius: var(--radius); padding: 28px;
   animation: fadeUp 0.3s ease;
 }
+.case-scenario {
+  background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.3);
+  border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px;
+}
+.case-scenario-label {
+  font-size: 10px; color: var(--gold); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+}
+.case-scenario-text {
+  font-size: 14px; color: var(--text2); line-height: 1.6;
+}
 .q-number { font-size: 11px; color: var(--gold); font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
 .q-text { font-size: 16px; color: var(--text); line-height: 1.7; margin-bottom: 24px; font-weight: 400; }
+.q-marks { font-size: 12px; color: var(--amber); font-weight: 500; margin-top: -16px; margin-bottom: 16px; }
 .options-grid { display: flex; flex-direction: column; gap: 10px; }
 .option-btn {
   display: flex; align-items: flex-start; gap: 14px;
@@ -413,26 +443,27 @@ textarea.qa-input:focus { outline: none; border-color: var(--gold); }
     <div class="topbar-brand">
       <div class="topbar-logo">CA</div>
       <div>
-        <div class="topbar-title">CA Final MCQ Tool</div>
+        <div class="topbar-title">CA Final MCQ Tool V2</div>
         <div class="topbar-sub">ICAI Assessment Platform</div>
       </div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;">
-      <span class="badge badge-gold">● Live</span>
+      <span class="badge badge-gold">● Live V2</span>
       <a href="#how" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">How to use</a>
     </div>
   </div>
 
   <div class="hero fade-up">
-    <div class="hero-badge"><span class="badge badge-gold">CA Final Level · ICAI Standard</span></div>
+    <div class="hero-badge"><span class="badge badge-gold">CA Final Level · ICAI Standard · V2</span></div>
     <h1>Your Personal<br><span>MCQ Assessment</span><br>Dashboard</h1>
-    <p>Paste AI-generated questions, take timed tests, and get comprehensive performance reports — built for CA Final students.</p>
+    <p>Single MCQs (1 mark) & Case-based MCQs (2 marks) — take timed tests with comprehensive performance reports built for CA Final students.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-gold" onclick="scrollToInput()">📋 Load Questions</button>
-      <button class="btn btn-outline" onclick="loadSample()">Try Sample Test</button>
+      <button class="btn btn-outline" onclick="loadSampleSingle()">Try Single MCQ Sample</button>
+      <button class="btn btn-outline" onclick="loadSampleCase()">Try Case MCQ Sample</button>
     </div>
     <div class="hero-stats">
-      <div class="hero-stat"><div class="hero-stat-num">7</div><div class="hero-stat-label">Report Types</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">2</div><div class="hero-stat-label">Question Types</div></div>
       <div class="hero-stat"><div class="hero-stat-num">∞</div><div class="hero-stat-label">Questions</div></div>
       <div class="hero-stat"><div class="hero-stat-num">100%</div><div class="hero-stat-label">Free · No Login</div></div>
     </div>
@@ -440,44 +471,96 @@ textarea.qa-input:focus { outline: none; border-color: var(--gold); }
 
   <div class="input-section" id="input-section">
     <h2>Load Your Questions</h2>
-    <p>Paste your AI-generated MCQs below. Use the format shown or pipe-separated (|) tabular format from our AI prompt.</p>
-
-    <div class="format-box">
-      <h4>Accepted Format (Tab or Pipe separated)</h4>
-      <code>
-        <em>Sl.No</em> | Question | Option A | Option B | Option C | Option D | Correct Answer<br>
-        1 | What is the purpose of SA 315? | Risk assessment | Audit planning | Internal control | Materiality | A<br>
-        2 | Under Ind AS 116, a lessee must... | Capitalise all leases | Expense all leases | Use judgement | None | A
-      </code>
+    
+    <div class="tabs-container">
+      <button class="tab-btn active" onclick="switchTab('single')">📝 Single MCQs (1 Mark)</button>
+      <button class="tab-btn" onclick="switchTab('case')">📚 Case-based MCQs (2 Marks)</button>
     </div>
 
-    <div class="meta-row">
-      <input type="text" id="test-name" placeholder="Test Name (e.g. SFM Mock 1)" value="CA Final Mock Test">
-      <input type="text" id="student-name" placeholder="Your Name">
-      <select id="time-limit">
-        <option value="0">No Time Limit</option>
-        <option value="30">30 Minutes</option>
-        <option value="45" selected>45 Minutes</option>
-        <option value="60">60 Minutes</option>
-        <option value="90">90 Minutes</option>
-        <option value="120">120 Minutes</option>
-        <option value="180">3 Hours</option>
-      </select>
-    </div>
+    <!-- SINGLE MCQ TAB -->
+    <div id="tab-single" class="tab-content active">
+      <p>Paste individual MCQs. Use the format shown or pipe-separated (|) tabular format.</p>
+      
+      <div class="format-box">
+        <h4>Accepted Format (Tab or Pipe separated)</h4>
+        <code>
+          <em>Sl.No</em> | Question | Option A | Option B | Option C | Option D | Correct Answer<br>
+          1 | What is the purpose of SA 315? | Risk assessment | Audit planning | Internal control | Materiality | A<br>
+          2 | Under Ind AS 116, a lessee must... | Capitalise all leases | Expense all leases | Use judgement | None | A
+        </code>
+      </div>
 
-    <textarea class="qa-input" id="qa-input" placeholder="Paste your MCQ data here...
+      <div class="meta-row">
+        <input type="text" id="test-name-single" placeholder="Test Name (e.g. SFM Mock 1)" value="Single MCQ Test">
+        <input type="text" id="student-name-single" placeholder="Your Name">
+        <select id="time-limit-single">
+          <option value="0">No Time Limit</option>
+          <option value="30">30 Minutes</option>
+          <option value="45" selected>45 Minutes</option>
+          <option value="60">60 Minutes</option>
+          <option value="90">90 Minutes</option>
+          <option value="120">120 Minutes</option>
+          <option value="180">3 Hours</option>
+        </select>
+      </div>
+
+      <textarea class="qa-input" id="qa-input-single" placeholder="Paste your Single MCQ data here...
 Example:
 1 | What does SA 570 deal with? | Going Concern | Related Parties | Internal Controls | Fraud | A
 2 | Under Ind AS 109, financial assets are classified into how many categories? | Two | Three | Four | Five | B
 
-Or just click 'Try Sample Test' above to see a demo instantly."></textarea>
+Or click 'Try Single MCQ Sample' above to see a demo instantly."></textarea>
 
-    <div class="input-actions">
-      <button class="btn btn-gold" onclick="parseAndStart()">🚀 Start Test</button>
-      <button class="btn btn-outline" onclick="loadSample()">Load Sample Questions</button>
-      <button class="btn btn-outline" onclick="clearInput()" style="color:var(--text3);">Clear</button>
+      <div class="input-actions">
+        <button class="btn btn-gold" onclick="parseAndStartSingle()">🚀 Start Single MCQ Test</button>
+        <button class="btn btn-outline" onclick="loadSampleSingle()">Load Sample Questions</button>
+        <button class="btn btn-outline" onclick="clearInput('single')" style="color:var(--text3);">Clear</button>
+      </div>
+      <div class="parse-status" id="parse-status-single"></div>
     </div>
-    <div class="parse-status" id="parse-status"></div>
+
+    <!-- CASE MCQ TAB -->
+    <div id="tab-case" class="tab-content">
+      <p>Paste case scenarios with their associated MCQs. Each case will be displayed once, then repeated for each question under it.</p>
+      
+      <div class="format-box">
+        <h4>Accepted Format (Tab or Pipe separated)</h4>
+        <code>
+          <em>Case ID</em> | Case Scenario | Sl.No | Question | Option A | Option B | Option C | Option D | Correct Answer<br>
+          CASE-01 | Company XYZ Ltd... [full scenario] | 1 | Question about the case... | Answer A | Answer B | Answer C | Answer D | A<br>
+          CASE-01 | Company XYZ Ltd... [same scenario] | 2 | Another question about case... | Answer A | Answer B | Answer C | Answer D | B<br>
+          CASE-02 | Another scenario... | 1 | New question... | Answer A | Answer B | Answer C | Answer D | C
+        </code>
+      </div>
+
+      <div class="meta-row">
+        <input type="text" id="test-name-case" placeholder="Test Name (e.g. Case Study Mock 1)" value="Case-based MCQ Test">
+        <input type="text" id="student-name-case" placeholder="Your Name">
+        <select id="time-limit-case">
+          <option value="0">No Time Limit</option>
+          <option value="30">30 Minutes</option>
+          <option value="45">45 Minutes</option>
+          <option value="60" selected>60 Minutes</option>
+          <option value="90">90 Minutes</option>
+          <option value="120">120 Minutes</option>
+          <option value="180">3 Hours</option>
+        </select>
+      </div>
+
+      <textarea class="qa-input" id="qa-input-case" placeholder="Paste your Case-based MCQ data here...
+Example:
+CASE-01 | ABC Ltd, a manufacturing company, changed its depreciation method from FYP to WDV... | 1 | Under which AS is change in accounting policy covered? | AS 3 | AS 5 | AS 36 | AS 8 | B
+CASE-01 | ABC Ltd, a manufacturing company, changed its depreciation method from FYP to WDV... | 2 | The CFO's classification of the change is an example of... | Error | Change in policy | Change in estimate | Prospective change | C
+
+Or click 'Try Case MCQ Sample' above to see a demo instantly."></textarea>
+
+      <div class="input-actions">
+        <button class="btn btn-gold" onclick="parseAndStartCase()">🚀 Start Case MCQ Test</button>
+        <button class="btn btn-outline" onclick="loadSampleCase()">Load Sample Questions</button>
+        <button class="btn btn-outline" onclick="clearInput('case')" style="color:var(--text3);">Clear</button>
+      </div>
+      <div class="parse-status" id="parse-status-case"></div>
+    </div>
   </div>
 
   <div class="how-section" id="how">
@@ -485,8 +568,8 @@ Or just click 'Try Sample Test' above to see a demo instantly."></textarea>
     <div class="steps-grid">
       <div class="step-card">
         <div class="step-num">1</div>
-        <h4>Generate with AI</h4>
-        <p>Use our CA Final prompt in NoteBookLM or ChatGPT to generate MCQs in the correct tabular format.</p>
+        <h4>Choose Test Type</h4>
+        <p>Select between Single MCQs (1 mark each) or Case-based MCQs (2 marks each).</p>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
@@ -496,12 +579,12 @@ Or just click 'Try Sample Test' above to see a demo instantly."></textarea>
       <div class="step-card">
         <div class="step-num">3</div>
         <h4>Attempt the Test</h4>
-        <p>Navigate questions freely, track your timer, and submit when ready.</p>
+        <p>Navigate questions freely, view case scenarios, track your timer, and submit when ready.</p>
       </div>
       <div class="step-card">
         <div class="step-num">4</div>
         <h4>View Full Reports</h4>
-        <p>Get 7 detailed reports — score, time analysis, weak areas, topic breakdown and more.</p>
+        <p>Get detailed reports — score, time analysis, weak areas, topic breakdown and more.</p>
       </div>
     </div>
   </div>
@@ -557,6 +640,7 @@ Or just click 'Try Sample Test' above to see a demo instantly."></textarea>
         <div class="sidebar-stat"><span>Answered</span><span class="green" id="sb-answered">0</span></div>
         <div class="sidebar-stat"><span>Skipped</span><span class="amber" id="sb-skipped">0</span></div>
         <div class="sidebar-stat"><span>Remaining</span><span id="sb-remaining">0</span></div>
+        <div class="sidebar-stat"><span>Total Marks</span><span id="sb-total-marks">0</span></div>
       </div>
       <button class="btn btn-rose" style="width:100%;margin-top:20px;justify-content:center;" onclick="confirmSubmit()">Submit Test</button>
     </div>
@@ -595,6 +679,7 @@ Or just click 'Try Sample Test' above to see a demo instantly."></textarea>
       <div class="rmeta"><div class="rmeta-val amber" id="r-skipped">0</div><div class="rmeta-lbl">Skipped</div></div>
       <div class="rmeta"><div class="rmeta-val sky" id="r-time">0:00</div><div class="rmeta-lbl">Time Taken</div></div>
       <div class="rmeta"><div class="rmeta-val" id="r-accuracy" style="color:var(--gold)">0%</div><div class="rmeta-lbl">Accuracy</div></div>
+      <div class="rmeta"><div class="rmeta-val" id="r-marks" style="color:var(--gold2)">0 / 0</div><div class="rmeta-lbl">Marks Obtained</div></div>
     </div>
   </div>
 
@@ -684,8 +769,20 @@ let timeElapsed = 0;
 let qStartTime = 0;
 let testStartTime = 0;
 let charts = {};
+let questionMarks = [];
+let testType = 'single';
 
 const OPTS = ['A','B','C','D'];
+
+// ══════════════════════════════════════════
+//  TAB MANAGEMENT
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
 
 // ══════════════════════════════════════════
 //  SCREEN MANAGEMENT
@@ -702,9 +799,9 @@ function scrollToInput() {
 }
 
 // ══════════════════════════════════════════
-//  PARSING
+//  PARSING — SINGLE MCQs
 // ══════════════════════════════════════════
-function parseInput(raw) {
+function parseInputSingle(raw) {
   const lines = raw.trim().split('\n').filter(l => l.trim());
   const qs = [];
   for (let line of lines) {
@@ -723,15 +820,43 @@ function parseInput(raw) {
     const ans = parts[offset+5] ? parts[offset+5].toUpperCase().trim() : '';
     if (!question || !optA || !optB || !optC || !optD) continue;
     if (!['A','B','C','D'].includes(ans)) continue;
-    qs.push({ question, options: [optA, optB, optC, optD], correct: ans });
+    qs.push({ question, options: [optA, optB, optC, optD], correct: ans, marks: 1, caseId: null, caseText: null });
   }
   return qs;
 }
 
-function parseAndStart() {
-  const raw = document.getElementById('qa-input').value;
-  const qs = parseInput(raw);
-  const status = document.getElementById('parse-status');
+// ══════════════════════════════════════════
+//  PARSING — CASE MCQs
+// ══════════════════════════════════════════
+function parseInputCase(raw) {
+  const lines = raw.trim().split('\n').filter(l => l.trim());
+  const qs = [];
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) continue;
+    let parts = line.includes('\t') ? line.split('\t') : line.split('|');
+    parts = parts.map(p => p.trim());
+    if (parts.length < 8) continue;
+    const caseId = parts[0];
+    const caseText = parts[1];
+    const slNo = parts[2];
+    const question = parts[3];
+    const optA = parts[4];
+    const optB = parts[5];
+    const optC = parts[6];
+    const optD = parts[7];
+    const ans = parts[8] ? parts[8].toUpperCase().trim() : '';
+    if (!caseId || !caseText || !question || !optA || !optB || !optC || !optD) continue;
+    if (!['A','B','C','D'].includes(ans)) continue;
+    qs.push({ question, options: [optA, optB, optC, optD], correct: ans, marks: 2, caseId, caseText });
+  }
+  return qs;
+}
+
+function parseAndStartSingle() {
+  const raw = document.getElementById('qa-input-single').value;
+  const qs = parseInputSingle(raw);
+  const status = document.getElementById('parse-status-single');
   if (qs.length === 0) {
     status.style.display = 'block';
     status.className = 'parse-status error';
@@ -740,47 +865,85 @@ function parseAndStart() {
   }
   status.style.display = 'block';
   status.className = 'parse-status success';
-  status.textContent = `✓ ${qs.length} question(s) loaded successfully. Starting test...`;
-  setTimeout(() => startTest(qs), 800);
+  status.textContent = `✓ ${qs.length} single MCQ(s) loaded successfully. Starting test...`;
+  setTimeout(() => startTest(qs, 'single'), 800);
 }
 
-function clearInput() {
-  document.getElementById('qa-input').value = '';
-  document.getElementById('parse-status').style.display = 'none';
+function parseAndStartCase() {
+  const raw = document.getElementById('qa-input-case').value;
+  const qs = parseInputCase(raw);
+  const status = document.getElementById('parse-status-case');
+  if (qs.length === 0) {
+    status.style.display = 'block';
+    status.className = 'parse-status error';
+    status.textContent = '⚠ Could not parse questions. Please check the format — use pipe (|) or tab-separated with Case ID | Case Scenario | Sl.No | Question | Option A | Option B | Option C | Option D | Correct Answer';
+    return;
+  }
+  status.style.display = 'block';
+  status.className = 'parse-status success';
+  status.textContent = `✓ ${qs.length} case-based MCQ(s) loaded successfully. Starting test...`;
+  setTimeout(() => startTest(qs, 'case'), 800);
 }
 
-function loadSample() {
-  const sample = `1|An auditor suspects a material misstatement but feels a strong subconscious urge to ignore it. According to Freudian theory, which component drove the urge to avoid discomfort?|The Superego|The Ego|The Id|The Conscious|C
+function clearInput(type) {
+  if (type === 'single') {
+    document.getElementById('qa-input-single').value = '';
+    document.getElementById('parse-status-single').style.display = 'none';
+  } else {
+    document.getElementById('qa-input-case').value = '';
+    document.getElementById('parse-status-case').style.display = 'none';
+  }
+}
+
+function loadSampleSingle() {
+  const sample = `1|An auditor suspects a material misstatement but feels a strong subconscious urge to ignore it. According to Freudian theory, which component drove the urge to avoid discomfort?|Ego|Id|Superego|Conscious mind|A
 2|A senior partner resists new AI-based auditing software. Which Big Five trait is the partner most likely lacking?|Openness to experience|Conscientiousness|Agreeableness|Extraversion|A
 3|A junior accountant learns complex tactics by observing a senior manager. This is central to which theory?|Biological Theory|Social-Cognitive Theory|Trait Theory|Psychoanalytic Theory|B
-4|Under SA 315, the auditor is required to identify and assess risks of material misstatement through:|Understanding the entity only|Analytical procedures only|Understanding entity and its environment|Inspection of documents only|C
-5|Which Ind AS deals with Revenue from Contracts with Customers?|Ind AS 109|Ind AS 115|Ind AS 116|Ind AS 112|B
-6|A CFO uses manipulation and politics to secure a large budget. This is characteristic of:|High Agreeableness|Narcissism|Psychopathy|Machiavellianism|D
-7|Under GST, the time limit for availing input tax credit for a financial year is:|30th September of the following year|31st December of the same year|31st March of the following year|30th June of the following year|A
-8|The concept of 'substance over form' is most relevant to which accounting standard?|Ind AS 2|Ind AS 8|Ind AS 1|Ind AS 36|C
-9|What is the minimum number of members required to form a public company?|2|3|5|7|D
-10|Under transfer pricing, which method compares the price of a controlled transaction with the price in an uncontrolled transaction?|TNMM|CUP Method|RPM|Cost Plus Method|B`;
-  document.getElementById('qa-input').value = sample;
-  document.getElementById('parse-status').style.display = 'none';
+4|Under SA 315, the auditor is required to identify and assess risks of material misstatement through:|Understanding the entity only|Analytical procedures only|Understanding entity and its environment|Testing only|C
+5|Which Ind AS deals with Revenue from Contracts with Customers?|Ind AS 109|Ind AS 115|Ind AS 116|Ind AS 112|B`;
+  document.getElementById('qa-input-single').value = sample;
+  document.getElementById('parse-status-single').style.display = 'none';
+  document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function loadSampleCase() {
+  const sample = `CASE-01|XYZ Ltd, a listed company, engaged in manufacturing. Recently, changed depreciation method from FYP to WDV. The CFO maintained the change was mandatory per IND AS. The audit team noted this was an accounting policy change, not mandatory.|1|Under which standard is change in accounting policy covered?|IAS 3|IAS 5|IAS 8|IAS 36|C
+CASE-01|XYZ Ltd, a listed company, engaged in manufacturing. Recently, changed depreciation method from FYP to WDV. The CFO maintained the change was mandatory per IND AS. The audit team noted this was an accounting policy change, not mandatory.|2|The CFO's claim of mandatory change is an example of:|Misrepresentation|Error in estimate|Fraud|All of the above|A
+CASE-02|ABC Bank Ltd received a 50-core rupee term loan application from a company with PF defaults and weak financials. The credit committee approved the loan citing 'relationship priority.' The loan was disbursed without conducting proper due diligence.|1|Under which provision of Companies Act, 2013 must board approval be obtained for such large exposures?|Section 177|Section 188|Section 179|Section 186|D
+CASE-02|ABC Bank Ltd received a 50-core rupee term loan application from a company with PF defaults and weak financials. The credit committee approved the loan citing 'relationship priority.' The loan was disbursed without conducting proper due diligence.|2|Which audit standard is most relevant for detecting such lending irregularities?|SA 240|SA 315|SA 330|SA 505|A`;
+  document.getElementById('qa-input-case').value = sample;
+  document.getElementById('parse-status-case').style.display = 'none';
   document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ══════════════════════════════════════════
 //  TEST ENGINE
 // ══════════════════════════════════════════
-function startTest(qs) {
+function startTest(qs, type) {
   questions = qs;
+  testType = type;
   userAnswers = new Array(qs.length).fill(null);
   questionTimes = new Array(qs.length).fill(0);
   skipped = new Array(qs.length).fill(false);
+  questionMarks = qs.map(q => q.marks);
   currentQ = 0;
   timeElapsed = 0;
   testStartTime = Date.now();
   qStartTime = Date.now();
 
-  timeLimit = parseInt(document.getElementById('time-limit').value) * 60;
-  document.getElementById('test-title-bar').textContent = document.getElementById('test-name').value || 'CA Final Mock Test';
-  document.getElementById('student-name-bar').textContent = document.getElementById('student-name').value || 'Student';
+  const config = type === 'single' ? {
+    testNameId: 'test-name-single',
+    studentNameId: 'student-name-single',
+    timeLimitId: 'time-limit-single'
+  } : {
+    testNameId: 'test-name-case',
+    studentNameId: 'student-name-case',
+    timeLimitId: 'time-limit-case'
+  };
+
+  timeLimit = parseInt(document.getElementById(config.timeLimitId).value) * 60;
+  document.getElementById('test-title-bar').textContent = document.getElementById(config.testNameId).value || 'CA Final Mock Test';
+  document.getElementById('student-name-bar').textContent = document.getElementById(config.studentNameId).value || 'Student';
 
   buildQGrid();
   renderQuestion();
@@ -818,6 +981,14 @@ function updateSidebarStats() {
   document.getElementById('sb-answered').textContent = answered;
   document.getElementById('sb-skipped').textContent = sk;
   document.getElementById('sb-remaining').textContent = questions.length - answered - sk;
+  
+  const totalMarks = questionMarks.reduce((a, b) => a + b, 0);
+  const obtainedMarks = userAnswers.reduce((sum, ans, i) => {
+    if (ans === questions[i].correct) return sum + questionMarks[i];
+    return sum;
+  }, 0);
+  document.getElementById('sb-total-marks').textContent = obtainedMarks + ' / ' + totalMarks;
+  
   document.getElementById('timer-attempted').textContent = answered + ' answered';
   const pct = ((answered) / questions.length * 100).toFixed(0);
   document.getElementById('progress-bar').style.width = pct + '%';
@@ -826,9 +997,23 @@ function updateSidebarStats() {
 
 function renderQuestion() {
   const q = questions[currentQ];
-  const area = document.getElementById('question-area');
-  area.innerHTML = `
-    <div class="q-number">Question ${currentQ + 1} of ${questions.length}</div>
+  const marks = testType === 'case' ? `(${q.marks} Marks)` : '(1 Mark)';
+  
+  let html = `
+    <div class="q-number">Question ${currentQ + 1} of ${questions.length} ${marks}</div>
+  `;
+  
+  // Show case scenario if it exists
+  if (q.caseText && q.caseId) {
+    html += `
+      <div class="case-scenario">
+        <div class="case-scenario-label">📚 Case Scenario: ${q.caseId}</div>
+        <div class="case-scenario-text">${q.caseText}</div>
+      </div>
+    `;
+  }
+  
+  html += `
     <div class="q-text">${q.question}</div>
     <div class="options-grid">
       ${q.options.map((opt, i) => `
@@ -840,6 +1025,8 @@ function renderQuestion() {
       `).join('')}
     </div>
   `;
+  
+  document.getElementById('question-area').innerHTML = html;
   document.getElementById('btn-prev').style.opacity = currentQ === 0 ? '0.3' : '1';
   document.getElementById('btn-prev').style.pointerEvents = currentQ === 0 ? 'none' : 'all';
   document.getElementById('btn-next').textContent = currentQ === questions.length - 1 ? 'Submit →' : 'Next →';
@@ -927,15 +1114,20 @@ function submitTest() {
 
 function getStats() {
   let correct = 0, wrong = 0, sk = 0;
+  let marksObtained = 0, totalMarks = 0;
   questions.forEach((q, i) => {
+    totalMarks += q.marks;
     if (userAnswers[i] === null) sk++;
-    else if (userAnswers[i] === q.correct) correct++;
+    else if (userAnswers[i] === q.correct) {
+      correct++;
+      marksObtained += q.marks;
+    }
     else wrong++;
   });
   const total = questions.length;
-  const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+  const pct = total > 0 ? Math.round(marksObtained / totalMarks * 100) : 0;
   const accuracy = (correct + wrong) > 0 ? Math.round(correct / (correct + wrong) * 100) : 0;
-  return { correct, wrong, skipped: sk, total, pct, accuracy };
+  return { correct, wrong, skipped: sk, total, pct, accuracy, marksObtained, totalMarks };
 }
 
 function buildResults() {
@@ -954,6 +1146,7 @@ function buildResults() {
   document.getElementById('r-skipped').textContent = s.skipped;
   document.getElementById('r-time').textContent = formatTime(timeElapsed);
   document.getElementById('r-accuracy').textContent = s.accuracy + '%';
+  document.getElementById('r-marks').textContent = s.marksObtained + ' / ' + s.totalMarks;
 
   // Destroy old charts
   Object.values(charts).forEach(c => { if(c) c.destroy(); });
@@ -998,164 +1191,163 @@ function buildResults() {
   });
 
   // Speed vs accuracy scatter
-  const spCtx = document.getElementById('chart-speed').getContext('2d');
-  const correct_pts = [], wrong_pts = [], skip_pts = [];
-  questions.forEach((q, i) => {
-    const pt = { x: questionTimes[i], y: i + 1 };
-    if (userAnswers[i] === null) skip_pts.push(pt);
-    else if (userAnswers[i] === q.correct) correct_pts.push(pt);
-    else wrong_pts.push(pt);
-  });
-  charts.speed = new Chart(spCtx, {
+  const svCtx = document.getElementById('chart-speed').getContext('2d');
+  const speedData = questions.map((q, i) => ({
+    x: questionTimes[i],
+    y: userAnswers[i] === null ? 0 : userAnswers[i] === q.correct ? 1 : -1,
+    label: 'Q' + (i + 1)
+  }));
+  charts.speed = new Chart(svCtx, {
     type: 'scatter',
     data: {
-      datasets: [
-        { label: 'Correct', data: correct_pts, backgroundColor: '#1a9e6e', pointRadius: 6 },
-        { label: 'Wrong', data: wrong_pts, backgroundColor: '#e05c6f', pointRadius: 6 },
-        { label: 'Skipped', data: skip_pts, backgroundColor: '#f59e0b', pointRadius: 6 }
-      ]
-    },
-    options: {
-      plugins: { legend: { labels: { color: '#9bacc8', font: { size: 11 } } } },
-      scales: {
-        x: { title: { display: true, text: 'Seconds Spent', color: '#6b82a0' }, ticks: { color: '#6b82a0' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { title: { display: true, text: 'Question No.', color: '#6b82a0' }, ticks: { color: '#6b82a0', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
-      }
-    }
-  });
-
-  // Time per question bars
-  const maxT = Math.max(...questionTimes, 1);
-  const tpq = document.getElementById('time-per-q');
-  tpq.innerHTML = questionTimes.map((t, i) => {
-    const isWrong = userAnswers[i] !== null && userAnswers[i] !== questions[i].correct;
-    const isCorrect = userAnswers[i] === questions[i].correct;
-    const color = isCorrect ? '#1a9e6e' : isWrong ? '#e05c6f' : '#f59e0b';
-    const pct = Math.round(t / maxT * 100);
-    return `<div class="time-row">
-      <div class="time-q-num">Q${i+1}</div>
-      <div class="time-bar-track"><div class="time-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      <div class="time-val">${t}s</div>
-    </div>`;
-  }).join('');
-
-  // Weak area list
-  const weakItems = questions.map((q, i) => ({ i, q, time: questionTimes[i], ans: userAnswers[i] }))
-    .filter(x => x.ans !== x.q.correct)
-    .sort((a, b) => b.time - a.time)
-    .slice(0, 8);
-  const wl = document.getElementById('weak-list');
-  if (weakItems.length === 0) {
-    wl.innerHTML = '<div style="text-align:center;color:var(--emerald2);padding:20px;font-size:14px;">🎉 Perfect score! No weak areas.</div>';
-  } else {
-    wl.innerHTML = weakItems.map(x => {
-      const pct = Math.round(x.time / Math.max(...weakItems.map(w => w.time), 1) * 100);
-      const status = x.ans === null ? 'Skipped' : 'Wrong';
-      const badge = x.ans === null ? 'badge-amber' : 'badge-rose';
-      return `<div class="weak-item">
-        <span class="badge ${badge}" style="flex-shrink:0">${status}</span>
-        <div class="weak-bar-wrap">
-          <div style="font-size:12px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px">Q${x.i+1}: ${x.q.question.substring(0,60)}...</div>
-          <div class="weak-bar-track"><div class="time-bar-fill" style="width:${pct}%;background:#e05c6f"></div></div>
-        </div>
-        <div class="weak-pct">${x.time}s</div>
-      </div>`;
-    }).join('');
-  }
-
-  // Radar chart
-  const radarCtx = document.getElementById('chart-radar').getContext('2d');
-  const speed_score = Math.min(100, Math.round(100 - (timeElapsed / (questions.length * 90) * 100)));
-  const completion = Math.round((questions.length - s.skipped) / questions.length * 100);
-  charts.radar = new Chart(radarCtx, {
-    type: 'radar',
-    data: {
-      labels: ['Score', 'Accuracy', 'Speed', 'Completion', 'Consistency'],
       datasets: [{
-        label: 'Your Performance',
-        data: [s.pct, s.accuracy, Math.max(0, speed_score), completion, s.pct > 0 ? Math.round((s.correct / Math.max(s.correct + s.wrong, 1)) * 100) : 0],
-        backgroundColor: 'rgba(201,168,76,0.12)',
-        borderColor: '#c9a84c',
-        borderWidth: 2,
-        pointBackgroundColor: '#c9a84c',
-        pointRadius: 4
+        label: 'Correct',
+        data: speedData.filter(d => d.y === 1),
+        backgroundColor: '#1a9e6e',
+        borderRadius: 4
+      }, {
+        label: 'Wrong',
+        data: speedData.filter(d => d.y === -1),
+        backgroundColor: '#e05c6f',
+        borderRadius: 4
+      }, {
+        label: 'Skipped',
+        data: speedData.filter(d => d.y === 0),
+        backgroundColor: '#f59e0b',
+        borderRadius: 4
       }]
     },
     options: {
       plugins: { legend: { labels: { color: '#9bacc8', font: { size: 11 } } } },
       scales: {
-        r: {
-          min: 0, max: 100,
-          ticks: { display: false },
-          grid: { color: 'rgba(255,255,255,0.06)' },
-          angleLines: { color: 'rgba(255,255,255,0.06)' },
-          pointLabels: { color: '#9bacc8', font: { size: 11 } }
-        }
-      }
+        x: { title: { display: true, text: 'Time (seconds)', color: '#9bacc8' }, ticks: { color: '#6b82a0' }, grid: { color: 'rgba(201,168,76,0.05)' } },
+        y: { title: { display: true, text: 'Result', color: '#9bacc8' }, ticks: { color: '#6b82a0' }, grid: { color: 'rgba(201,168,76,0.05)' } }
+      },
+      animation: { duration: 600 }
     }
   });
 
-  buildReview();
-}
-
-// ══════════════════════════════════════════
-//  REVIEW SCREEN
-// ══════════════════════════════════════════
-function buildReview() {
-  const list = document.getElementById('review-list');
-  list.innerHTML = questions.map((q, i) => {
-    const ua = userAnswers[i];
-    const ca = q.correct;
-    const isCorrect = ua === ca;
-    const isSkipped = ua === null;
-    const statusBadge = isSkipped ? '<span class="badge badge-amber">Skipped</span>' : isCorrect ? '<span class="badge badge-green">✓ Correct</span>' : '<span class="badge badge-rose">✗ Wrong</span>';
-
-    const opts = OPTS.map((opt, oi) => {
-      let cls = 'neutral';
-      if (opt === ca) cls = 'correct-ans';
-      else if (opt === ua && !isCorrect) cls = 'user-wrong';
-      const suffix = opt === ca ? ' ← Correct Answer' : (opt === ua && !isCorrect ? ' ← Your Answer' : '');
-      return `<div class="review-opt ${cls}">
-        <div class="review-opt-label">${opt}</div>
-        <div style="font-size:13px">${q.options[oi]}${suffix}</div>
-      </div>`;
-    }).join('');
-
-    return `<div class="review-q fade-up">
-      <div class="review-q-head">
-        <div class="review-q-num">Q${i+1}</div>
-        ${statusBadge}
+  // Time per question
+  const timePerQ = document.getElementById('time-per-q');
+  timePerQ.innerHTML = '';
+  questions.forEach((_, i) => {
+    const maxTime = Math.max(...questionTimes);
+    const barWidth = maxTime > 0 ? (questionTimes[i] / maxTime * 100) : 0;
+    const html = `
+      <div class="time-row">
+        <div class="time-q-num">Q${i + 1}</div>
+        <div class="time-bar-track">
+          <div class="time-bar-fill" style="width:${barWidth}%;background:${userAnswers[i] === questions[i].correct ? '#1a9e6e' : userAnswers[i] ? '#e05c6f' : '#f59e0b'};"></div>
+        </div>
+        <div class="time-val">${questionTimes[i]}s</div>
       </div>
-      <div class="review-q-text">${q.question}</div>
-      <div class="review-options" style="margin-top:14px">${opts}</div>
-      <div class="review-time">⏱ Time spent: ${questionTimes[i]}s${ua ? ' · Your answer: ' + ua + ' · Correct: ' + ca : ' · Not attempted'}</div>
-    </div>`;
-  }).join('');
+    `;
+    timePerQ.innerHTML += html;
+  });
+
+  // Weak areas
+  const weakList = document.getElementById('weak-list');
+  const wrongQs = questions
+    .map((q, i) => ({ idx: i, time: questionTimes[i], q }))
+    .filter((item, i) => userAnswers[i] !== questions[i].correct && userAnswers[i] !== null)
+    .sort((a, b) => b.time - a.time)
+    .slice(0, 5);
+  
+  if (wrongQs.length === 0) {
+    weakList.innerHTML = '<p style="color:var(--emerald2);font-size:13px;">🎉 No weak areas! All answered questions are correct.</p>';
+  } else {
+    weakList.innerHTML = wrongQs.map(item => {
+      const pct = (item.time / Math.max(...questionTimes) * 100).toFixed(0);
+      return `
+        <div class="weak-item">
+          <div class="weak-label">Q ${item.idx + 1}</div>
+          <div class="weak-bar-wrap">
+            <div class="weak-bar-track">
+              <div style="height:100%;background:#e05c6f;border-radius:99px;width:${pct}%;"></div>
+            </div>
+          </div>
+          <div class="weak-pct">${item.time}s</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Radar chart
+  const radarCtx = document.getElementById('chart-radar').getContext('2d');
+  charts.radar = new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+      labels: ['Accuracy', 'Speed', 'Completion', 'Consistency'],
+      datasets: [{
+        data: [s.accuracy, Math.min(100, 100 - (Math.round(timeElapsed / 60) % 100)), 100, Math.round((s.correct / s.total) * 100)],
+        borderColor: '#c9a84c',
+        backgroundColor: 'rgba(201,168,76,0.1)',
+        borderWidth: 2,
+        pointBackgroundColor: '#c9a84c'
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 100, ticks: { color: '#6b82a0' }, grid: { color: 'rgba(201,168,76,0.1)' } } },
+      animation: { duration: 800 }
+    }
+  });
 }
 
-// ══════════════════════════════════════════
-//  UTILITIES
-// ══════════════════════════════════════════
 function retakeTest() {
-  userAnswers = new Array(questions.length).fill(null);
-  questionTimes = new Array(questions.length).fill(0);
-  skipped = new Array(questions.length).fill(false);
-  currentQ = 0;
-  timeElapsed = 0;
-  testStartTime = Date.now();
-  qStartTime = Date.now();
-  buildQGrid();
-  renderQuestion();
-  startTimer();
-  showScreen('screen-test');
+  showScreen('screen-home');
 }
 
 function printReport() {
   window.print();
 }
 
-// Init
-showScreen('screen-home');
+// ══════════════════════════════════════════
+//  REVIEW
+// ══════════════════════════════════════════
+function buildReview() {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  questions.forEach((q, i) => {
+    const userAns = userAnswers[i];
+    const isCorrect = userAns === q.correct;
+    const html = `
+      <div class="review-q">
+        <div class="review-q-head">
+          <div class="review-q-num">Q ${i + 1}</div>
+          <div>${isCorrect ? '✓ Correct' : userAns === null ? '⊘ Skipped' : '✗ Wrong'}</div>
+        </div>
+        <div class="review-q-text">${q.question}</div>
+        <div class="review-options">
+          ${q.options.map((opt, j) => {
+            const lbl = OPTS[j];
+            let cls = 'neutral';
+            if (lbl === q.correct) cls = 'correct-ans';
+            else if (lbl === userAns && !isCorrect) cls = 'user-wrong';
+            return `
+              <div class="review-opt ${cls}">
+                <div class="review-opt-label">${lbl}</div>
+                <div>${opt}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="review-time">⏱ Time spent: ${questionTimes[i]}s</div>
+      </div>
+    `;
+    list.innerHTML += html;
+  });
+}
+
+// ══════════════════════════════════════════
+//  ON RESULTS PAGE LOAD
+// ══════════════════════════════════════════
+const observer = new MutationObserver(() => {
+  if (document.getElementById('screen-results').classList.contains('active')) {
+    buildReview();
+  }
+});
+observer.observe(document.body, { attributes: true, subtree: true });
 </script>
 </body>
 </html>
