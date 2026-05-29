@@ -26,26 +26,3 @@ A powerful web-based tool designed for CA Final students to practice MCQs, track
 5. View detailed analytics after submission
 
 ## 🧾 Supported Format
-1 | Question | Option A | Option B | Option C | Option D | A
-OR tab-separated format.
-
-## 🛠 Tech Stack
-
-- HTML
-- CSS
-- JavaScript
-- Chart.js
-
-## 📸 Screens
-
-- Home Input Page
-- Test Screen
-- Results Dashboard
-- Review Panel
-
-## 💡 Use Case
-
-Perfect for:
-- CA Final students
-- Coaching institutes
-- Self-practice with AI-generated questions
